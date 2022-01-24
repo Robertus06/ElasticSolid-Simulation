@@ -423,7 +423,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29bf574bf423bf04381bb9bea015cddb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Paused: 1
+  Paused: 0
   TimeStep: 0.001
   Gravity: {x: 0, y: -9.81, z: 0}
   IntegrationMethod: 1
