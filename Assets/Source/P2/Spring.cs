@@ -12,16 +12,16 @@ public class Spring {
 
     public float stiffness;
     public float volumen;
-    //public float damp;
+    public float damp;
 
     // Use this for initialization
-    public Spring(Node nodeA, Node nodeB, float stiffness)
+    public Spring(Node nodeA, Node nodeB, float stiffness, float damp)
     {
         this.nodeA = nodeA;
         this.nodeB = nodeB;
         this.stiffness = stiffness;
         this.volumen = 0;
-        //this.damp = damp;
+        this.damp = damp;
 
         UpdateLength();
         Length0 = Length;
@@ -37,7 +37,7 @@ public class Spring {
         Vector3 u = nodeA.pos - nodeB.pos;
         u.Normalize();
         Vector3 force = - volumen / (float)Math.Pow(Length0, 2) * stiffness * (Length - Length0) * u;
-        //force += -damp * Vector3.Project((nodeA.vel - nodeB.vel), u);
+        force += -damp * Vector3.Project((nodeA.vel - nodeB.vel), u);
         nodeA.force += force;
         nodeB.force -= force;
     }

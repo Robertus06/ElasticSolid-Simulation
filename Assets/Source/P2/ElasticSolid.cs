@@ -18,6 +18,7 @@ public class ElasticSolid : MonoBehaviour
         this.IntegrationMethod = Integration.Symplectic;
         this.massDensity = 1.0f;
         this.stiffnessDensity = 1000.0f;
+        this.damping = 10.0f;
 
         this.vertices = new List<Vector3> { };
         this.tetraedros = new List<int> { };
@@ -44,6 +45,7 @@ public class ElasticSolid : MonoBehaviour
     public Integration IntegrationMethod;
     public float massDensity;
     public float stiffnessDensity;
+    public float damping;
 
     private Mesh mesh;
     private Vector3[] verticesModelo;
@@ -126,17 +128,17 @@ public class ElasticSolid : MonoBehaviour
             int nodeC = this.tetraedros[j + 2];
             int nodeD = this.tetraedros[j + 3];
 
-            Spring spring1 = new Spring(nodes[nodeA], nodes[nodeB], stiffnessDensity);
+            Spring spring1 = new Spring(nodes[nodeA], nodes[nodeB], stiffnessDensity, damping);
             if (!springs.Contains(spring1)) springs.Add(spring1);
-            Spring spring2 = new Spring(nodes[nodeA], nodes[nodeC], stiffnessDensity);
+            Spring spring2 = new Spring(nodes[nodeA], nodes[nodeC], stiffnessDensity, damping);
             if (!springs.Contains(spring2)) springs.Add(spring2);
-            Spring spring3 = new Spring(nodes[nodeA], nodes[nodeD], stiffnessDensity);
+            Spring spring3 = new Spring(nodes[nodeA], nodes[nodeD], stiffnessDensity, damping);
             if (!springs.Contains(spring3)) springs.Add(spring3);
-            Spring spring4 = new Spring(nodes[nodeB], nodes[nodeC], stiffnessDensity);
+            Spring spring4 = new Spring(nodes[nodeB], nodes[nodeC], stiffnessDensity, damping);
             if (!springs.Contains(spring4)) springs.Add(spring4);
-            Spring spring5 = new Spring(nodes[nodeD], nodes[nodeC], stiffnessDensity);
+            Spring spring5 = new Spring(nodes[nodeD], nodes[nodeC], stiffnessDensity, damping);
             if (!springs.Contains(spring5)) springs.Add(spring5);
-            Spring spring6 = new Spring(nodes[nodeB], nodes[nodeD], stiffnessDensity);
+            Spring spring6 = new Spring(nodes[nodeB], nodes[nodeD], stiffnessDensity, damping);
             if (!springs.Contains(spring6)) springs.Add(spring6);
 
             Spring[] aristas = { springs[springs.IndexOf(spring1)], springs[springs.IndexOf(spring2)], springs[springs.IndexOf(spring3)], springs[springs.IndexOf(spring4)], springs[springs.IndexOf(spring5)], springs[springs.IndexOf(spring6)] };
