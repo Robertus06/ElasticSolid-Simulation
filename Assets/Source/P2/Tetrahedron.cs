@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -21,6 +22,17 @@ public class Tetrahedron
     public float calcularVolumen()
     {
         return Mathf.Abs(Vector3.Dot(nodeB.pos - nodeA.pos, Vector3.Cross(nodeC.pos - nodeA.pos, nodeD.pos - nodeA.pos))) / 6;
+    }
+    
+    public float BaricentricCoord(int i, Vector3 pos)
+    {
+        Vector3[] aux = { nodeA.pos, nodeB.pos , nodeC.pos , nodeD.pos };
+        aux[i] = pos;
+        float vi = Math.Abs(Vector3.Dot((aux[1] - aux[0]),
+            Vector3.Cross((aux[2] - aux[0]),
+                (aux[3] - aux[0])))) / 6;
+        return vi / volumen;
+
     }
 
     public bool Contiene(Vector3 v)

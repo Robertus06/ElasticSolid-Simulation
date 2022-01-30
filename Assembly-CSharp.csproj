@@ -65,6 +65,7 @@
      <Compile Include="Assets\Source\P2\Parser.cs" />
      <Compile Include="Assets\Source\P2\Spring.cs" />
      <Compile Include="Assets\Source\P2\Tetrahedron.cs" />
+     <Compile Include="Assets\Source\P2\Vertex.cs" />
      <None Include="Assets\Source\P2\tetgen_txt\amongus.1.edge.txt" />
      <None Include="Assets\Source\P2\tetgen_txt\amongus.1.ele.txt" />
      <None Include="Assets\Source\P2\tetgen_txt\amongus.1.node.txt" />

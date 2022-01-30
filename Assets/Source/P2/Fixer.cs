@@ -5,63 +5,40 @@ using UnityEngine;
 public class Fixer : MonoBehaviour
 {
     public GameObject Objeto;
-    private Vector3 posFixerAnterior;
-    List<Node> nodesFixed = new List<Node>();
+    
+    private List<Vector3> fixedNodesPos;
+    private List<int> fixedNodesIdx;
 
-	// Possibilities of the Fixer
-	void Start ()
+    // Possibilities of the Fixer
+    void Start ()
     {
-        this.posFixerAnterior = this.transform.position;
+        fixedNodesPos = new List<Vector3> { };
+        fixedNodesIdx = new List<int> { };
 
         List<Node> nodes = Objeto.GetComponent<ElasticSolid>().getNodes();
 
         Bounds bounds = GetComponent<Collider>().bounds;
 
-        foreach (Node node in nodes)
+        for (int i = 0; i < nodes.Count; i++)
         {
-            if (bounds.Contains(node.pos))
+            if (bounds.Contains(nodes[i].pos))
             {
-                node.setFixed(true);
-                nodesFixed.Add(node);
+                nodes[i].setFixed(true);
+                fixedNodesIdx.Add(i);
+                fixedNodesPos.Add(transform.InverseTransformPoint(nodes[i].pos));
             }
-
         }
     }
-
-    // Mueve la tela entera
-    /**
+    
     private void Update()
     {
-        Vector3 posFixer = this.transform.position;
-
-        if (posFixer - this.posFixerAnterior != Vector3.zero)
+        List<Node> nodes = Objeto.GetComponent<ElasticSolid>().getNodes();
+        int i = 0;
+        foreach (int idx in fixedNodesIdx)
         {
-            Vector3 move = posFixer - this.posFixerAnterior;
-            List<Node> nodes = tela.GetComponent<ElasticSolid>().getNodes();
-            foreach (Node node in nodes)
-            {
-                node.pos += move;
-            }
-            this.posFixerAnterior = posFixer;
+            nodes[idx].pos = transform.TransformPoint(fixedNodesPos[i]);
+            i++;
         }
+        Objeto.GetComponent<ElasticSolid>().setNodes(nodes);
     }
-    /**/
-
-    // Mueve la tela solo de los nodos fijos
-    /**/
-    private void Update()
-    {
-        Vector3 posFixer = this.transform.position;
-
-        if (posFixer - this.posFixerAnterior != Vector3.zero)
-        {
-            Vector3 move = posFixer - this.posFixerAnterior;
-            foreach (Node node in this.nodesFixed)
-            {
-                node.pos += move;
-            }
-            this.posFixerAnterior = posFixer;
-        }
-    }
-    /**/
 }

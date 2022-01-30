@@ -20,12 +20,10 @@ public class ElasticSolid : MonoBehaviour
         this.stiffnessDensity = 1000.0f;
         this.damping = 10.0f;
 
-        this.vertices = new List<Vector3> { };
-        this.tetraedros = new List<int> { };
-
         this.nodes = new List<Node> { };
         this.springs = new List<Spring> { };
         this.tetrahedrons = new List<Tetrahedron> { };
+        this.vertexTets = new List<Vertex> { };
     }
 
     /// <summary>
@@ -48,20 +46,16 @@ public class ElasticSolid : MonoBehaviour
     public float damping;
 
     private Mesh mesh;
-    private Vector3[] verticesModelo;
-    private Vector4[] coordBaricentricas;
-
-    private List<Vector3> vertices;
-    private List<int> tetraedros;
-    private int[] tetraPertenece;
-
-    private List<Node> nodes;
-    private List<Spring> springs;
-    private List<Tetrahedron> tetrahedrons;
+    private Vector3[] vertices;
 
     #endregion
 
     #region OtherVariables
+
+    private List<Node> nodes;
+    private List<Spring> springs;
+    private List<Tetrahedron> tetrahedrons;
+    private List<Vertex> vertexTets;
 
     #endregion
 
@@ -70,18 +64,15 @@ public class ElasticSolid : MonoBehaviour
     public void Awake()
     {
         this.mesh = this.GetComponentInChildren<MeshFilter>().mesh;
-        this.verticesModelo = mesh.vertices;
-        this.coordBaricentricas = new Vector4[verticesModelo.Length];
-        this.tetraPertenece = new int[verticesModelo.Length];
+        this.vertices = this.mesh.vertices;
 
         GetComponent<Parser>().ParseFiles();
-        this.vertices = GetComponent<Parser>().getVertices();
-        this.tetraedros = GetComponent<Parser>().getTetraedros();
+        List<Vector3> nodePos = GetComponent<Parser>().getVertices();
+        List<int> tetraedros = GetComponent<Parser>().getTetraedros();
 
         //For simulation purposes, transform the points to global coordinates
-        createNodes();
-        createTetraedros();
-        createCoordBaricentricas();
+        createNodes(nodePos);
+        createTetraedros(tetraedros);
 
         foreach (Tetrahedron tet in tetrahedrons)
         {
@@ -95,38 +86,46 @@ public class ElasticSolid : MonoBehaviour
                 spring.volumen += tet.volumen / 6;
             }
         }
+        
+        createCoordBaricentricas();
     }
 
     public List<Node> getNodes()
     {
         return this.nodes;
     }
+    
+    public void setNodes(List<Node> nodes)
+    {
+        this.nodes = nodes;
+    }
 
     public List<Spring> getSprings()
     {
         return this.springs;
     }
-
-    public void createNodes()
+    
+    public void createNodes(List<Vector3> nodePos)
     {
-        for (int i = 0; i <= this.vertices.Count-1; i++)
+        for (int i = 0; i <= nodePos.Count-1; i++)
         {
-            Vector3 pos = transform.TransformPoint(this.vertices[i]);
+            Vector3 pos = transform.TransformPoint(nodePos[i]);
 
             Node newNode = new Node(pos, this.Gravity, 0);
             nodes.Add(newNode);
         }
     }
-    public void createTetraedros()
+    
+    public void createTetraedros(List<int> tetraedros)
     {
-        float numTetraedros = this.tetraedros.Count / 4;
+        float numTetraedros = tetraedros.Count / 4;
         for (int i = 0; i <= numTetraedros - 1; i ++)
         {
             int j = i * 4;
-            int nodeA = this.tetraedros[j];
-            int nodeB = this.tetraedros[j + 1];
-            int nodeC = this.tetraedros[j + 2];
-            int nodeD = this.tetraedros[j + 3];
+            int nodeA = tetraedros[j];
+            int nodeB = tetraedros[j + 1];
+            int nodeC = tetraedros[j + 2];
+            int nodeD = tetraedros[j + 3];
 
             Spring spring1 = new Spring(nodes[nodeA], nodes[nodeB], stiffnessDensity, damping);
             if (!springs.Contains(spring1)) springs.Add(spring1);
@@ -150,34 +149,20 @@ public class ElasticSolid : MonoBehaviour
 
     public void createCoordBaricentricas()
     {
-        bool encontrado;
-        int j;
-        for (int i = 0; i <= this.verticesModelo.Length - 1; i++)
+        foreach (Vector3 vertice in this.vertices)
         {
-            encontrado = false;
-            j = 0;
-            while (!encontrado && j < this.tetrahedrons.Count)
+            bool find = false;
+            int i = 0;
+            while (!find && i < tetrahedrons.Count)
             {
-                if (this.tetrahedrons[j].Contiene(this.verticesModelo[i]))
+                if (tetrahedrons[i].Contiene(transform.TransformPoint(vertice)))
                 {
-                    encontrado = true;
-                    this.tetraPertenece[i] = j;
-                    this.coordBaricentricas[i] = calcularCoordBaricentricas(this.tetrahedrons[j], this.verticesModelo[i]);
+                    find = true;
+                    vertexTets.Add(new Vertex(transform.TransformPoint(vertice), tetrahedrons[i]));
                 }
-                j++;
+                i++;
             }
         }
-    }
-
-    public Vector4 calcularCoordBaricentricas(Tetrahedron t, Vector3 v)
-    {
-        Vector4 coordBar = new Vector4();
-        float volumen =  t.volumen;
-        coordBar.x = (Mathf.Abs(Vector3.Dot(t.nodeB.pos - v, Vector3.Cross(t.nodeC.pos - v, t.nodeD.pos - v))) / 6) / volumen;
-        coordBar.y = (Mathf.Abs(Vector3.Dot(v - t.nodeA.pos, Vector3.Cross(t.nodeC.pos - t.nodeA.pos, t.nodeD.pos - t.nodeA.pos))) / 6) / volumen;
-        coordBar.z = (Mathf.Abs(Vector3.Dot(t.nodeB.pos - t.nodeA.pos, Vector3.Cross(v - t.nodeA.pos, t.nodeD.pos - t.nodeA.pos))) / 6) / volumen;
-        coordBar.w = (Mathf.Abs(Vector3.Dot(t.nodeB.pos - t.nodeA.pos, Vector3.Cross(t.nodeC.pos - t.nodeA.pos, v - t.nodeA.pos))) / 6) / volumen;
-        return coordBar;
     }
 
     public void Update()
@@ -232,17 +217,13 @@ public class ElasticSolid : MonoBehaviour
             spring.UpdateLength();
         }
 
-        for (int i = 0; i <= this.verticesModelo.Length - 1; i++)
+        for (int i = 0; i <= this.vertices.Length - 1; i++)
         {
-            Vector3 pos = coordBaricentricas[i].x * tetrahedrons[tetraPertenece[i]].nodeA.pos +
-                coordBaricentricas[i].y * tetrahedrons[tetraPertenece[i]].nodeB.pos +
-                coordBaricentricas[i].z * tetrahedrons[tetraPertenece[i]].nodeC.pos +
-                coordBaricentricas[i].w * tetrahedrons[tetraPertenece[i]].nodeD.pos;
-
-            this.verticesModelo[i] = transform.InverseTransformPoint(pos);
+            Vector3 pos = vertexTets[i].ComputePos();
+            this.vertices[i] = transform.InverseTransformPoint(pos);
         }
 
-        this.mesh.vertices = this.verticesModelo;
+        mesh.vertices = vertices;
     }
 
     /// <summary>
@@ -275,16 +256,12 @@ public class ElasticSolid : MonoBehaviour
             spring.UpdateLength();
         }
 
-        for (int i = 0; i <= this.verticesModelo.Length - 1; i++)
+        for (int i = 0; i <= this.vertices.Length - 1; i++)
         {
-            Vector3 pos = coordBaricentricas[i].x * tetrahedrons[tetraPertenece[i]].nodeA.pos +
-                coordBaricentricas[i].y * tetrahedrons[tetraPertenece[i]].nodeB.pos +
-                coordBaricentricas[i].z * tetrahedrons[tetraPertenece[i]].nodeC.pos +
-                coordBaricentricas[i].w * tetrahedrons[tetraPertenece[i]].nodeD.pos;
-
-            this.verticesModelo[i] = transform.InverseTransformPoint(pos);
+            Vector3 pos = vertexTets[i].ComputePos();
+                this.vertices[i] = transform.InverseTransformPoint(pos);
         }
 
-        this.mesh.vertices = this.verticesModelo;
+        mesh.vertices = vertices;
     }
 }
